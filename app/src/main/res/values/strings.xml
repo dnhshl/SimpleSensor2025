@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">SimpleSensor</string>
+    <string name="mainScreenTitle">Sensorliste</string>
+    <string name="mainScreenLabel">Sensoren</string>
+    <string name="screen2Title">6 Achsen Sensor</string>
+    <string name="screen2Label">Gyro</string>
+    <string name="screen3Title">Position</string>
+    <string name="screen3Label">GPS</string>
+    <string name="FullScreen1Title">Fullscreen 1</string>
+    <string name="FullScreen2Title">Fullscreen2</string>
+    <string name="menuItem1">Menu Item 1</string>
+    <string name="menuItem2">Menu Item 2</string>
+    <string name="menuItem3">Info</string>
+    <string name="emptyString" />
+    <string name="permissionRational">Sie haben den notwendigen Rechten noch nicht zugestimmt.</string>
+    <string name="requestPermission">Rechte erteilen</string>
+    <string name="permissionRequired">Bitte erteilen Sie die notwendigen Rechte.</string>
+    <string name="noGyroData">Keine Gyrodaten verfügbar.</string>
+    <string name="noAccelerationData">keine Beschleunigungsdaten verfügbar.</string>
+</resources>
