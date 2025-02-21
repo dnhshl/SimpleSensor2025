@@ -1,7 +1,6 @@
 package com.example.main.ui.screens
 
 import android.Manifest
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +33,7 @@ import com.example.main.ui.navigation.MyNavHost
 import com.example.main.ui.navigation.MyTopBar
 import com.example.main.ui.screens.MyScreens.Companion.bottomBarScreens
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
@@ -56,55 +56,25 @@ fun MyApp() {
 
     // Schalte Bildschirminhalt abhängig vom Rechtestatus
     when {
-        // wenn Rechte erteilt sind: App anzeigen
+        // wenn Rechte erteilt sind:
+        // Location Updates starten und App anzeigen
         // Der komplette Scaffold Inhalt wird in MyAppScaffold definiert
         permissionState.status.isGranted -> {
-            MyAppScaffold(viewModel, navController)
+            MyAppScreen(viewModel, navController)
         }
         // Wenn der Nutzer die Rechte schon einmal verweigert hat,
         // aber noch nicht permanent, dann kann hier eine Erklärung
         // angezeigt werden, warum die Rechte benötigt werden
         permissionState.status.shouldShowRationale -> {
-            Column (
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Text(
-                    text = stringResource(R.string.permissionRational),
-                    fontSize = 24.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                )
-                // First-time request or denied permanently, trigger the request
-                Button(onClick = { permissionState.launchPermissionRequest() }) {
-                    Text(stringResource(R.string.requestPermission))
-                }
-            }
+            PermissonRationalScreen(permissionState)
+
         }
         // Wenn der Nutzer die Rechte noch nicht erteilt hat, dann
         // kann hier die Anfrage gestartet werden
         // Es wird ein Systemdialog geöffnet, in dem der Nutzer die Rechte
         // erteilen kann
         else -> {
-            Column (
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Text(
-                    text = stringResource(R.string.permissionRequired),
-                    fontSize = 24.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                )
-                // First-time request or denied permanently, trigger the request
-                Button(onClick = {
-                    Log.i(">>>>", "Requesting permission")
-                    permissionState.launchPermissionRequest() }) {
-                    Text(stringResource(R.string.requestPermission))
-                }
-            }
+            RequestPermissionScreen(permissionState)
         }
     }
 
@@ -114,7 +84,7 @@ fun MyApp() {
 }
 
 @Composable
-fun MyAppScaffold(viewModel: MainViewModel, navController: NavHostController) {
+fun MyAppScreen(viewModel: MainViewModel, navController: NavHostController) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
@@ -156,4 +126,46 @@ fun MyAppScaffold(viewModel: MainViewModel, navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun PermissonRationalScreen(permissionState: PermissionState) {
+    Column (
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        Text(
+            text = stringResource(R.string.permissionRational),
+            fontSize = 24.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        )
+        // First-time request or denied permanently, trigger the request
+        Button(onClick = { permissionState.launchPermissionRequest() }) {
+            Text(stringResource(R.string.requestPermission))
+        }
+    }
+}
+
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun RequestPermissionScreen(permissionState: PermissionState) {
+    Column (
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        Text(
+            text = stringResource(R.string.permissionRequired),
+            fontSize = 24.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        )
+        // First-time request or denied permanently, trigger the request
+        Button(onClick = { permissionState.launchPermissionRequest() }) {
+            Text(stringResource(R.string.requestPermission))
+        }
+    }
+}
 

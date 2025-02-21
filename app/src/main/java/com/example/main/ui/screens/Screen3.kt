@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -16,6 +17,11 @@ import com.example.main.model.MainViewModel
 
 @Composable
 fun Screen3(viewModel: MainViewModel, navController: NavController) {
+
+    DisposableEffect(Unit) {
+        viewModel.startLocationUpdates()
+        onDispose { viewModel.stopLocationUpdates() }
+    }
 
     val state by viewModel.state.collectAsState()
     val location = state.location
@@ -34,5 +40,4 @@ fun Screen3(viewModel: MainViewModel, navController: NavController) {
             Text("Location data not available", fontSize = 24.sp)
         }
     }
-
 }

@@ -3,9 +3,6 @@ package com.example.main.model
 import android.app.Application
 import android.content.Context
 import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -13,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -27,39 +25,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val datastoreManager = DatastoreManager(dataStore)
 
 
-    // Zugriff auf Sensoren via SensorManager
-    private val sensorManager =
-        application.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val sensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
+    // Zugriff auf Sensoren
+    val sensorRepository = SensorRepository(getApplication())
 
-
-    // Zugriff auf Gyroskop Sensor
-    private val gyroSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-
-    private val gyroSensorListener = object : SensorEventListener {
-        override fun onSensorChanged(event: SensorEvent?) {
-            event?.let {
-                _state.value = _state.value.copy(gyro = it.values.toList())
-            }
-        }
-
-        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        }
-    }
-
-    // Zugriff auf Beschleunigungssensor
-    private val accelerometerSensor: Sensor? =
-        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-    private val accelerometerSensorListener = object : SensorEventListener {
-        override fun onSensorChanged(event: SensorEvent?) {
-            event?.let {
-                _state.value = _state.value.copy(acceleration = it.values.toList())
-            }
-        }
-
-        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
-    }
 
     // Zugriff auf Location
     private val locationRepository = LocationRepository(application)
@@ -79,34 +47,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
 
         // Sensoren im State speichern
-        _state.value = _state.value.copy(sensors = sensors)
+        val sensorList = sensorRepository.getAllSensors()
+        _state.value = _state.value.copy(sensors = sensorList)
 
 
         // Hier können "Beobachter" auf Zustandsänderungen initialisiert werden
         // z.B. um den UI-Zustand zu speichern oder um auf Änderungen zu reagieren
 
-        // Gyroskop Sensor überwachen
-        gyroSensor?.also {
-            sensorManager.registerListener(
-                gyroSensorListener,
-                it,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-        }
-
-        // Beschleunigungssensor überwachen
-        accelerometerSensor?.also {
-            sensorManager.registerListener(
-                accelerometerSensorListener,
-                it,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-        }
-
-        // Location überwachen
+        // Überwache Gyro Sensor
         viewModelScope.launch {
-            locationRepository.getLocationUpdates().collectLatest { location ->
-                _state.value = _state.value.copy(location = location)
+            sensorRepository.getSensorUpdates(Sensor.TYPE_GYROSCOPE).collect { event ->
+                _state.value = _state.value.copy(gyro = event.values.toList())
+            }
+        }
+
+        // Überwache Accelerometer Sensor
+        viewModelScope.launch {
+            sensorRepository.getSensorUpdates(Sensor.TYPE_ACCELEROMETER).collect { event ->
+                _state.value = _state.value.copy(acceleration = event.values.toList())
             }
         }
 
@@ -145,6 +103,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Actions
     // ------------------------------------------------------------------------------
 
+    private var locationJob: Job? = null
+
+    fun startLocationUpdates() {
+        locationJob = viewModelScope.launch {
+            locationRepository.getLocationUpdates().collectLatest { location ->
+                _state.value = _state.value.copy(location = location)
+            }
+        }
+    }
+
+    fun stopLocationUpdates() {
+        locationJob?.cancel()
+        locationJob = null
+    }
 
     // Setze den Namen im persistanten State
 
@@ -182,10 +154,4 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return getApplication<Application>().getString(resId)
     }
 
-    // Cleanup bei ViewModel-Ende
-    override fun onCleared() {
-        super.onCleared()
-        sensorManager.unregisterListener(gyroSensorListener)
-        sensorManager.unregisterListener(accelerometerSensorListener)
-    }
 }
