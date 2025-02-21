@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SimpleSensor2025"
+rootProject.name = "SimpleFitness2025"
 include(":app")
  

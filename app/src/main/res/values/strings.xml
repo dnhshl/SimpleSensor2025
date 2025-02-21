@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">SimpleSensor</string>
-    <string name="mainScreenTitle">Sensorliste</string>
-    <string name="mainScreenLabel">Sensoren</string>
-    <string name="screen2Title">6 Achsen Sensor</string>
-    <string name="screen2Label">Gyro</string>
-    <string name="screen3Title">Position</string>
-    <string name="screen3Label">GPS</string>
+    <string name="app_name">SimpleFitness</string>
+    <string name="mainScreenTitle">Fitness Daten</string>
+    <string name="mainScreenLabel">Daten</string>
+    <string name="screen2Title">Speedometer</string>
+    <string name="screen2Label">Speedo</string>
+    <string name="screen3Title">Fitness Graph</string>
+    <string name="screen3Label">Graph</string>
     <string name="FullScreen1Title">Fullscreen 1</string>
     <string name="FullScreen2Title">Fullscreen2</string>
     <string name="menuItem1">Menu Item 1</string>
@@ -17,4 +17,7 @@
     <string name="permissionRequired">Bitte erteilen Sie die notwendigen Rechte.</string>
     <string name="noGyroData">Keine Gyrodaten verfügbar.</string>
     <string name="noAccelerationData">keine Beschleunigungsdaten verfügbar.</string>
+    <string name="error_fetching_data">Daten konnten nicht abgerufen werden.</string>
+    <string name="FitnessDataText">Fitness: %1$.2f\nPuls: %2$d\nabgerufen am:\n%3$s</string>
+    <string name="NoData">Keine Daten abgerufen</string>
 </resources>

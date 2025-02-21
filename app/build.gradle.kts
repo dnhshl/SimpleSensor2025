@@ -10,7 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.simplesensor2025"
+        applicationId = "com.example.simplefitness2025"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -57,6 +57,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.permissons)
     implementation(libs.play.services.location)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.speedometer.android)
+    implementation(libs.compose.charts)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

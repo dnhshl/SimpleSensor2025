@@ -13,16 +13,12 @@ import kotlinx.serialization.Serializable
 // Persistenter UI-Zustand
 @Serializable
 data class PersistantUiState(
-    val name: String = ""
+    val dummy: String = "dummy"
 )
 
 // Nicht persistenter UI-Zustand
 data class UiState(
-    val sensors: List<Sensor> = emptyList(),
-    val gyro: List<Float> = emptyList(),
-    val acceleration: List<Float> = emptyList(),
-    val backgroundColor: Color = Color.White,
-    val location: Location? = null
+    val fitnessData: FitnessData? = null,
 )
 
 

@@ -10,11 +10,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.main.R
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json.Default.decodeFromString
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -25,12 +33,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val datastoreManager = DatastoreManager(dataStore)
 
 
-    // Zugriff auf Sensoren
-    val sensorRepository = SensorRepository(getApplication())
 
-
-    // Zugriff auf Location
-    private val locationRepository = LocationRepository(application)
+    // Network Repository einbinden
+    private val URL = "https://fitnessdata-436188705757.us-central1.run.app/"
+    private val networkRepository = NetworkRepository()
 
 
     // Persistenter State
@@ -45,28 +51,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
     init {
-
-        // Sensoren im State speichern
-        val sensorList = sensorRepository.getAllSensors()
-        _state.value = _state.value.copy(sensors = sensorList)
-
-
-        // Hier können "Beobachter" auf Zustandsänderungen initialisiert werden
-        // z.B. um den UI-Zustand zu speichern oder um auf Änderungen zu reagieren
-
-        // Überwache Gyro Sensor
-        viewModelScope.launch {
-            sensorRepository.getSensorUpdates(Sensor.TYPE_GYROSCOPE).collect { event ->
-                _state.value = _state.value.copy(gyro = event.values.toList())
-            }
-        }
-
-        // Überwache Accelerometer Sensor
-        viewModelScope.launch {
-            sensorRepository.getSensorUpdates(Sensor.TYPE_ACCELEROMETER).collect { event ->
-                _state.value = _state.value.copy(acceleration = event.values.toList())
-            }
-        }
 
 
         // Lade den persistenten UI-Zustand
@@ -89,13 +73,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Überwache den state und triggere Aktionen bei bestimmeten Zuständen
         // Hier als Beispiel: Ändere die Hintergrundfarbe bei bestimmten Gyro-Werten
 
-        viewModelScope.launch {
-            _state.collectLatest {
-                val gyroY = _state.value.gyro.getOrElse(1) { 0f }
-                if (gyroY > 0.5) _state.value = _state.value.copy(backgroundColor = Color.Red)
-                if (gyroY < -0.5) _state.value = _state.value.copy(backgroundColor = Color.Green)
-            }
-        }
 
     }
 
@@ -103,31 +80,54 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Actions
     // ------------------------------------------------------------------------------
 
-    private var locationJob: Job? = null
 
-    fun startLocationUpdates() {
-        locationJob = viewModelScope.launch {
-            locationRepository.getLocationUpdates().collectLatest { location ->
-                _state.value = _state.value.copy(location = location)
+    fun fetchJsonData() {
+        viewModelScope.launch {
+            try {
+                val jsonData = networkRepository.getJsonData(URL)
+                val fitnessData = parseFitnessData(jsonData)
+                _state.value = _state.value.copy(fitnessData = fitnessData)
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Failed to fetch JSON data", e)
+                showSnackbar(getStringRessource(R.string.error_fetching_data))
             }
         }
     }
 
-    fun stopLocationUpdates() {
-        locationJob?.cancel()
-        locationJob = null
+    private var fetchJob: Job? = null
+
+    fun startFetchingData(intervalMillis: Long) {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            while (isActive) {
+                fetchJsonData()
+                delay(intervalMillis)
+            }
+        }
     }
 
-    // Setze den Namen im persistanten State
-
-    fun onNameChange(name: String) {
-        _pState.value = _pState.value.copy(name = name)
+    fun stopFetchingData() {
+        fetchJob?.cancel()
+        fetchJob = null
     }
+
 
 
     // Ab hier Helper Funktionen
     // ------------------------------------------------------------------------------
 
+    private fun parseFitnessData(jsonString: String): FitnessData {
+        val fitnessData = decodeFromString<FitnessData>(jsonString)
+        val parsedTimestamp = parseIsoTimestamp(fitnessData.isotimestamp)
+        return fitnessData.copy(isotimestamp = parsedTimestamp)
+    }
+
+    private fun parseIsoTimestamp(isoTimestamp: String): String {
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss 'Uhr'")
+        val zonedDateTime = ZonedDateTime.parse(isoTimestamp)
+            .withZoneSameInstant(ZoneId.of("Europe/Berlin"))
+        return formatter.format(zonedDateTime)
+    }
 
     // Snackbar
     // ------------------------------------------------------------------------------

@@ -51,7 +51,7 @@ fun MyApp() {
 
     // Welche Rechte werden benötigt?
     val permissionState = rememberPermissionState(
-        permission = Manifest.permission.ACCESS_FINE_LOCATION
+        permission = Manifest.permission.INTERNET
     )
 
     // Schalte Bildschirminhalt abhängig vom Rechtestatus

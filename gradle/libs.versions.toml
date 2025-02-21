@@ -13,6 +13,10 @@ datastore = "1.1.2"
 compose-navigation = "2.8.7"
 accompanist = "0.37.1"
 playServicesLocation = "21.3.0"
+ktor = "2.3.2"
+speedometer = "1.0.0-ALPHA02"
+compose-charts = "0.1.2"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,7 +40,10 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "compose-navigation" }
 accompanist-permissons = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
-
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+speedometer-android = { module = "com.github.anastr:speedometer-android", version.ref = "speedometer" }
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "compose-charts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
