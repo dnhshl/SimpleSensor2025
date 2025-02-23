@@ -5,15 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
 import androidx.compose.material.icons.filled.Dataset
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Sensors
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.outlined.Dataset
-import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.main.R

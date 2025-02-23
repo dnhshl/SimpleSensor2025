@@ -10,7 +10,7 @@ const val MAXPULS = 200
 const val MINPULS = 40
 const val MAX_FITNESS_DATA = 20
 
-val BottomAxisLabelKey = ExtraStore.Key<List<String>>()
+
 
 @Serializable
 data class FitnessData(

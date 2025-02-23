@@ -2,17 +2,15 @@ package com.example.main.model
 
 import android.app.Application
 import android.content.Context
-import android.hardware.Sensor
 import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.main.R
+import com.example.main.ui.screens.BottomAxisLabelKey
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
@@ -22,10 +20,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json.Default.decodeFromString
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import kotlin.random.Random
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -74,15 +68,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         // Überwache den state und triggere Aktionen bei bestimmeten Zuständen
-        // Hier als Beispiel: Ändere die Hintergrundfarbe bei bestimmten Gyro-Werten
 
-        viewModelScope.launch {
-            _state.value.modelProducer.runTransaction {
-                lineSeries {
-                    series(13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11)
-                }
-            }
-        }
 
 
     }
@@ -97,23 +83,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val jsonData = networkRepository.getJsonData(URL)
-                Log.i(">>>>>", "fetchJsonData: $jsonData")
+                Log.i(">>>>>", "jsonData: $jsonData")
                 val fitnessData = parseFitnessData(jsonData)
-                Log.i(">>>>>", "fetchJsonData: $fitnessData")
-                val currentList = _state.value.fitnessDataList
-                val newList = (currentList + fitnessData).takeLast(MAX_FITNESS_DATA)
-                val labelList = newList.map { it.axisLabel }
-                _state.value.modelProducer.runTransaction {
-                    lineSeries {
-                        series( newList.map { it.puls })
-                        extras { it[BottomAxisLabelKey] = labelList }
-                    }
-                }
-
-                _state.value = _state.value.copy(
-                    fitnessData = fitnessData,
-                    fitnessDataList = newList
-                )
+                fitnessData?.let { addFitnessData(it) }
+                Log.i(">>>>>", "fitnessData: $fitnessData")
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Failed to fetch JSON data", e)
                 showSnackbar(getStringRessource(R.string.error_fetching_data))
@@ -129,6 +102,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             Log.i(">>>>>", "startFetchingData")
             while (isActive) {
                 fetchJsonData()
+                if (fitnessDataBuffer.size > 0) {
+                    val fitnessData = fitnessDataBuffer.last()
+                    _state.value = _state.value.copy(fitnessData = fitnessData)
+                }
                 delay(intervalMillis)
             }
         }
@@ -144,10 +121,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startFetchingChartData(intervalMillis: Long) {
         fetchChartDataJob?.cancel()
-        _state.value = _state.value.copy(fitnessDataList = emptyList())
         fetchChartDataJob = viewModelScope.launch {
             while (isActive) {
                 fetchJsonData()
+
+                if (fitnessDataBuffer.size > 0) {
+
+                    val labelList = fitnessDataBuffer.map { it.axisLabel }
+                    _state.value.modelProducer.runTransaction {
+                        lineSeries {
+                            series(fitnessDataBuffer.map { it.puls })
+                            extras { it[BottomAxisLabelKey] = labelList }
+                        }
+                    }
+                }
                 delay(intervalMillis)
             }
         }
@@ -163,11 +150,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Ab hier Helper Funktionen
     // ------------------------------------------------------------------------------
 
-    private fun parseFitnessData(jsonString: String): FitnessData {
-        val fitnessData = decodeFromString<FitnessData>(jsonString)
-        return fitnessData
+    private fun parseFitnessData(jsonString: String): FitnessData? {
+        return try {
+            decodeFromString<FitnessData>(jsonString)
+        } catch (e: Exception) {
+            null
+        }
     }
 
+    private val fitnessDataBuffer = ArrayDeque<FitnessData>()
+
+    private fun addFitnessData(data: FitnessData) {
+        if (fitnessDataBuffer.size == MAX_FITNESS_DATA) {
+            fitnessDataBuffer.removeFirst()
+        }
+        fitnessDataBuffer.addLast(data)
+    }
 
     // Snackbar
     // ------------------------------------------------------------------------------
