@@ -44,7 +44,7 @@ fun MainScreen(
 
         val displayText = if (fitnessData != null) {
             stringResource(id = R.string.FitnessDataText, fitnessData.fitness,
-                fitnessData.puls, fitnessData.isotimestamp)
+                fitnessData.puls, fitnessData.formattedTimestamp)
         } else {
             stringResource(id = R.string.NoData)
         }

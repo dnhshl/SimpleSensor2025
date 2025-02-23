@@ -16,6 +16,9 @@ playServicesLocation = "21.3.0"
 ktor = "2.3.2"
 speedometer = "1.0.0-ALPHA02"
 compose-charts = "0.1.2"
+ycharts = "2.1.0"
+vico = "2.0.1"
+
 
 
 [libraries]
@@ -44,6 +47,9 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 speedometer-android = { module = "com.github.anastr:speedometer-android", version.ref = "speedometer" }
 compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "compose-charts" }
+ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

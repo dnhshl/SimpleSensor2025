@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.main.R
+import com.example.main.model.MAXPULS
+import com.example.main.model.MINPULS
 import com.example.main.model.MainViewModel
 import com.github.anastr.speedometer.SpeedView
 import com.github.anastr.speedometer.SpeedometerDefaults
@@ -69,7 +71,7 @@ fun Screen2(viewModel: MainViewModel, navController: NavController) {
             modifier = Modifier.size(250.dp),
             speed = animatedPulse,
             minSpeed = 0f,
-            maxSpeed = 200f,
+            maxSpeed = MAXPULS.toFloat(),
             unit = "",
             sections = persistentListOf<Section>(
                 Section(0f, .4f, Color.Green),

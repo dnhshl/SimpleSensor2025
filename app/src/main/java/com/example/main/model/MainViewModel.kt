@@ -11,6 +11,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.main.R
+import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
@@ -23,6 +25,7 @@ import kotlinx.serialization.json.Json.Default.decodeFromString
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.random.Random
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -73,6 +76,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Überwache den state und triggere Aktionen bei bestimmeten Zuständen
         // Hier als Beispiel: Ändere die Hintergrundfarbe bei bestimmten Gyro-Werten
 
+        viewModelScope.launch {
+            _state.value.modelProducer.runTransaction {
+                lineSeries {
+                    series(13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11)
+                }
+            }
+        }
+
 
     }
 
@@ -81,12 +92,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // ------------------------------------------------------------------------------
 
 
+
     fun fetchJsonData() {
         viewModelScope.launch {
             try {
                 val jsonData = networkRepository.getJsonData(URL)
+                Log.i(">>>>>", "fetchJsonData: $jsonData")
                 val fitnessData = parseFitnessData(jsonData)
-                _state.value = _state.value.copy(fitnessData = fitnessData)
+                Log.i(">>>>>", "fetchJsonData: $fitnessData")
+                val currentList = _state.value.fitnessDataList
+                val newList = (currentList + fitnessData).takeLast(MAX_FITNESS_DATA)
+                val labelList = newList.map { it.axisLabel }
+                _state.value.modelProducer.runTransaction {
+                    lineSeries {
+                        series( newList.map { it.puls })
+                        extras { it[BottomAxisLabelKey] = labelList }
+                    }
+                }
+
+                _state.value = _state.value.copy(
+                    fitnessData = fitnessData,
+                    fitnessDataList = newList
+                )
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Failed to fetch JSON data", e)
                 showSnackbar(getStringRessource(R.string.error_fetching_data))
@@ -99,6 +126,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun startFetchingData(intervalMillis: Long) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
+            Log.i(">>>>>", "startFetchingData")
             while (isActive) {
                 fetchJsonData()
                 delay(intervalMillis)
@@ -107,8 +135,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun stopFetchingData() {
+        Log.i(">>>>>", "stopFetchingData")
         fetchJob?.cancel()
         fetchJob = null
+    }
+
+    private var fetchChartDataJob: Job? = null
+
+    fun startFetchingChartData(intervalMillis: Long) {
+        fetchChartDataJob?.cancel()
+        _state.value = _state.value.copy(fitnessDataList = emptyList())
+        fetchChartDataJob = viewModelScope.launch {
+            while (isActive) {
+                fetchJsonData()
+                delay(intervalMillis)
+            }
+        }
+    }
+
+    fun stopFetchingChartData() {
+        fetchChartDataJob?.cancel()
+        fetchChartDataJob = null
     }
 
 
@@ -118,16 +165,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun parseFitnessData(jsonString: String): FitnessData {
         val fitnessData = decodeFromString<FitnessData>(jsonString)
-        val parsedTimestamp = parseIsoTimestamp(fitnessData.isotimestamp)
-        return fitnessData.copy(isotimestamp = parsedTimestamp)
+        return fitnessData
     }
 
-    private fun parseIsoTimestamp(isoTimestamp: String): String {
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss 'Uhr'")
-        val zonedDateTime = ZonedDateTime.parse(isoTimestamp)
-            .withZoneSameInstant(ZoneId.of("Europe/Berlin"))
-        return formatter.format(zonedDateTime)
-    }
 
     // Snackbar
     // ------------------------------------------------------------------------------
