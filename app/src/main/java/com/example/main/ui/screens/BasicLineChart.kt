@@ -26,9 +26,9 @@ val BottomAxisLabelKey = ExtraStore.Key<List<String>>()
 @Composable
 fun BasicLineChart(
     modelProducer: CartesianChartModelProducer,
+    modifier: Modifier = Modifier,
     minY: Double = 0.0,
     maxY: Double = 200.0,
-    modifier: Modifier = Modifier,
 ) {
     // Konfiguration des Charts
     val chart = rememberCartesianChart(

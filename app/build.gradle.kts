@@ -60,8 +60,6 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.speedometer.android)
-    implementation(libs.compose.charts)
-    implementation(libs.ycharts)
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
     testImplementation(libs.junit)
