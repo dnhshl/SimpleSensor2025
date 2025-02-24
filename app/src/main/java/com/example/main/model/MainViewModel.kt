@@ -162,12 +162,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun updateChartData() {
+        // mache nichts, wenn keine Daten im Buffer sind
         if (fitnessDataBuffer.isEmpty()) return
+        // Generiere die Liste der Daten, nutze dafür den Puls Wert aus den FitnessData verwendet wird
+        val dataList = fitnessDataBuffer.map { it.puls }
+        // Generiere eine Liste mit Labels, die an der x-Achse angezeigt werden
+        // nutze dafür die axisLabel aus den FitnessData
         val labelList = fitnessDataBuffer.map { it.axisLabel }
-        val timestampStart = fitnessDataBuffer.first().isotimestamp
+        // übergib die Daten an den Graphen
         modelProducer.runTransaction {
             lineSeries {
-                series(fitnessDataBuffer.map { it.puls })
+                // Daten
+                series( dataList )
+                // Label
                 extras { it[BottomAxisLabelKey] = labelList }
             }
         }

@@ -5,8 +5,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-const val MAXPULS = 200
-const val MINPULS = 40
+const val MAXPULS = 200.0
+const val MINPULS = 0.0
 const val MAX_FITNESS_DATA = 20
 
 

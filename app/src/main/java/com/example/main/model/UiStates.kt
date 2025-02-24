@@ -15,8 +15,7 @@ data class PersistantUiState(
 
 // Nicht persistenter UI-Zustand
 data class UiState(
-    val fitnessData: FitnessData? = null,
-
+    val fitnessData: FitnessData? = null
 )
 
 

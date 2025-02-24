@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.main.model.MAXPULS
+import com.example.main.model.MINPULS
 import com.example.main.model.MainViewModel
 
 
@@ -29,7 +30,7 @@ fun Screen3(viewModel: MainViewModel, navController: NavController) {
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        BasicLineChart(viewModel.modelProducer, minY = 0.0, maxY = MAXPULS.toDouble())
+        BasicLineChart(viewModel.modelProducer, minY = MINPULS, maxY = MAXPULS)
     }
 }
 
