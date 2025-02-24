@@ -1,8 +1,11 @@
 package com.example.main.ui.screens
 
+import android.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+
+import com.example.main.model.MAXPULS
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -15,18 +18,18 @@ import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Shape
-
 
 val BottomAxisLabelKey = ExtraStore.Key<List<String>>()
 
 @Composable
 fun BasicLineChart(
     modelProducer: CartesianChartModelProducer,
+    minY: Double = 0.0,
+    maxY: Double = 200.0,
     modifier: Modifier = Modifier,
 ) {
     // Konfiguration des Charts
@@ -37,7 +40,7 @@ fun BasicLineChart(
                     pointProvider = LineCartesianLayer.PointProvider.single(
                         LineCartesianLayer.point(
                             rememberShapeComponent(
-                                fill = Fill.Black,
+                                fill = Fill(Color.BLUE),
                                 shape = Shape.Rectangle
                             )
                         )
@@ -46,15 +49,15 @@ fun BasicLineChart(
             ),
             rangeProvider = remember {
                 CartesianLayerRangeProvider.fixed(
-                    minY = 0.0,
-                    maxY = 200.0
+                    minY = minY,
+                    maxY = maxY
                 )
             }
         ),
         startAxis = VerticalAxis.rememberStart(),
         bottomAxis = HorizontalAxis.rememberBottom(
             labelRotationDegrees = 25f,
-            valueFormatter = CartesianValueFormatter { context, x, _ ->
+            valueFormatter = { context, x, _ ->
                 context.model.extraStore[BottomAxisLabelKey]
                     ?.getOrNull(x.toInt())
                     ?: ""

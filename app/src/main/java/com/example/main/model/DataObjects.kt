@@ -1,6 +1,5 @@
 package com.example.main.model
 
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import kotlinx.serialization.Serializable
 import java.time.ZoneId
 import java.time.ZonedDateTime

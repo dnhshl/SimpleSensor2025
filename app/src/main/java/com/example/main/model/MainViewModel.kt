@@ -77,22 +77,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Actions
     // ------------------------------------------------------------------------------
 
-
-
-    fun fetchJsonData() {
-        viewModelScope.launch {
-            try {
-                val jsonData = networkRepository.getJsonData(URL)
-                Log.i(">>>>>", "jsonData: $jsonData")
-                val fitnessData = parseFitnessData(jsonData)
-                fitnessData?.let { addFitnessData(it) }
-                Log.i(">>>>>", "fitnessData: $fitnessData")
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Failed to fetch JSON data", e)
-                showSnackbar(getStringRessource(R.string.error_fetching_data))
-            }
+    fun getFitnessData() {
+        fetchFitnessData()
+        if (fitnessDataBuffer.isNotEmpty()) {
+            val fitnessData = fitnessDataBuffer.last()
+            _state.value = _state.value.copy(fitnessData = fitnessData)
         }
     }
+
 
     private var fetchJob: Job? = null
 
@@ -101,11 +93,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fetchJob = viewModelScope.launch {
             Log.i(">>>>>", "startFetchingData")
             while (isActive) {
-                fetchJsonData()
-                if (fitnessDataBuffer.size > 0) {
-                    val fitnessData = fitnessDataBuffer.last()
-                    _state.value = _state.value.copy(fitnessData = fitnessData)
-                }
+                getFitnessData()
                 delay(intervalMillis)
             }
         }
@@ -123,18 +111,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fetchChartDataJob?.cancel()
         fetchChartDataJob = viewModelScope.launch {
             while (isActive) {
-                fetchJsonData()
-
-                if (fitnessDataBuffer.size > 0) {
-
-                    val labelList = fitnessDataBuffer.map { it.axisLabel }
-                    _state.value.modelProducer.runTransaction {
-                        lineSeries {
-                            series(fitnessDataBuffer.map { it.puls })
-                            extras { it[BottomAxisLabelKey] = labelList }
-                        }
-                    }
-                }
+                fetchFitnessData()
+                updateChartData()
                 delay(intervalMillis)
             }
         }
@@ -149,6 +127,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Ab hier Helper Funktionen
     // ------------------------------------------------------------------------------
+
+    fun fetchFitnessData() {
+        viewModelScope.launch {
+            try {
+                val jsonData = networkRepository.getJsonData(URL)
+                Log.i(">>>>>", "jsonData: $jsonData")
+                val fitnessData = parseFitnessData(jsonData)
+                fitnessData?.let { addFitnessData(it) }
+                Log.i(">>>>>", "fitnessData: $fitnessData")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Failed to fetch JSON data", e)
+                showSnackbar(getStringRessource(R.string.error_fetching_data))
+            }
+        }
+    }
 
     private fun parseFitnessData(jsonString: String): FitnessData? {
         return try {
@@ -165,6 +158,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             fitnessDataBuffer.removeFirst()
         }
         fitnessDataBuffer.addLast(data)
+    }
+
+    private suspend fun updateChartData() {
+        if (fitnessDataBuffer.isEmpty()) return
+        val labelList = fitnessDataBuffer.map { it.axisLabel }
+        _state.value.modelProducer.runTransaction {
+            lineSeries {
+                series(fitnessDataBuffer.map { it.puls })
+                extras { it[BottomAxisLabelKey] = labelList }
+            }
+        }
     }
 
     // Snackbar

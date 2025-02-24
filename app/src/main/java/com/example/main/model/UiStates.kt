@@ -19,7 +19,6 @@ data class PersistantUiState(
 data class UiState(
     val fitnessData: FitnessData? = null,
     val modelProducer: CartesianChartModelProducer = CartesianChartModelProducer(),
-    val chart: CartesianChart? = null
 )
 
 

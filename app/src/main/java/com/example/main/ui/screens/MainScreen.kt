@@ -50,8 +50,8 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { viewModel.fetchJsonData() }) {
-            Text("JSON Daten abrufen")
+        Button(onClick = { viewModel.getFitnessData() }) {
+            Text(stringResource(R.string.getFitnessDataButton))
         }
     }
 }
