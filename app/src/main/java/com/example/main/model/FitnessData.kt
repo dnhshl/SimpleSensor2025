@@ -10,7 +10,6 @@ const val MINPULS = 40
 const val MAX_FITNESS_DATA = 20
 
 
-
 @Serializable
 data class FitnessData(
     val fitness: Double = 0.0,
@@ -33,3 +32,10 @@ data class FitnessData(
             return formatter.format(zonedDateTime)
         }
 }
+
+fun timeDiffInSeconds(timestamp1: String, timestamp2: String): Long {
+    val zonedDateTime1 = ZonedDateTime.parse(timestamp1)
+    val zonedDateTime2 = ZonedDateTime.parse(timestamp2)
+    return java.time.Duration.between(zonedDateTime1, zonedDateTime2).seconds
+}
+

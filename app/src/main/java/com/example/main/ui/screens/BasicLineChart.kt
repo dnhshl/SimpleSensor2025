@@ -4,8 +4,6 @@ import android.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-
-import com.example.main.model.MAXPULS
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -60,7 +58,7 @@ fun BasicLineChart(
             valueFormatter = { context, x, _ ->
                 context.model.extraStore[BottomAxisLabelKey]
                     ?.getOrNull(x.toInt())
-                    ?: ""
+                    ?: " "
             }
         )
     )
@@ -72,3 +70,4 @@ fun BasicLineChart(
         animationSpec = null
     )
 }
+

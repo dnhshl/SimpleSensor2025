@@ -50,7 +50,7 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { viewModel.getFitnessData() }) {
+        Button(onClick = { viewModel.fetchFitnessData() }) {
             Text(stringResource(R.string.getFitnessDataButton))
         }
     }

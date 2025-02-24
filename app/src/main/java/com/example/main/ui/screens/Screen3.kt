@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,15 +21,15 @@ fun Screen3(viewModel: MainViewModel, navController: NavController) {
         onDispose { viewModel.stopFetchingChartData() }
     }
 
-    val state by viewModel.state.collectAsState()
-    val modelProducer = state.modelProducer
+    //val state by viewModel.state.collectAsState()
+    //val modelProducer = state.modelProducer
 
     Column (
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        BasicLineChart(modelProducer, minY = 0.0, maxY = MAXPULS.toDouble())
+        BasicLineChart(viewModel.modelProducer, minY = 0.0, maxY = MAXPULS.toDouble())
     }
 }
 

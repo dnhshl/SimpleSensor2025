@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.main.R
 import com.example.main.ui.screens.BottomAxisLabelKey
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -28,6 +29,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val Context.dataStore by preferencesDataStore(name = "ui_state")
     private val dataStore = application.dataStore
     private val datastoreManager = DatastoreManager(dataStore)
+
+    val modelProducer: CartesianChartModelProducer = CartesianChartModelProducer()
 
 
 
@@ -77,15 +80,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Actions
     // ------------------------------------------------------------------------------
 
-    fun getFitnessData() {
-        fetchFitnessData()
-        if (fitnessDataBuffer.isNotEmpty()) {
-            val fitnessData = fitnessDataBuffer.last()
-            _state.value = _state.value.copy(fitnessData = fitnessData)
+    // Einmalig Fitnessdaten abrufen
+    fun fetchFitnessData() {
+        viewModelScope.launch {
+            try {
+                val jsonData = networkRepository.getJsonData(URL)
+                val fitnessData = parseFitnessData(jsonData)
+                fitnessData?.let {
+                    _state.value = _state.value.copy(fitnessData = fitnessData)
+                    addFitnessData(it)
+                }
+                Log.i(">>>>>", "fetchFitnessData: $fitnessData")
+                Log.i(">>>>>", "fitnessDataBuffer: $fitnessDataBuffer")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Failed to fetch JSON data", e)
+                showSnackbar(getStringRessource(R.string.error_fetching_data))
+            }
         }
     }
 
 
+    // Job, um regelmäßig Fitnessdaten abzurufen
     private var fetchJob: Job? = null
 
     fun startFetchingData(intervalMillis: Long) {
@@ -93,7 +108,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fetchJob = viewModelScope.launch {
             Log.i(">>>>>", "startFetchingData")
             while (isActive) {
-                getFitnessData()
+                fetchFitnessData()
                 delay(intervalMillis)
             }
         }
@@ -105,6 +120,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fetchJob = null
     }
 
+    // Job, um regelmäßig Chartdaten zu aktualisieren
     private var fetchChartDataJob: Job? = null
 
     fun startFetchingChartData(intervalMillis: Long) {
@@ -128,21 +144,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Ab hier Helper Funktionen
     // ------------------------------------------------------------------------------
 
-    fun fetchFitnessData() {
-        viewModelScope.launch {
-            try {
-                val jsonData = networkRepository.getJsonData(URL)
-                Log.i(">>>>>", "jsonData: $jsonData")
-                val fitnessData = parseFitnessData(jsonData)
-                fitnessData?.let { addFitnessData(it) }
-                Log.i(">>>>>", "fitnessData: $fitnessData")
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Failed to fetch JSON data", e)
-                showSnackbar(getStringRessource(R.string.error_fetching_data))
-            }
-        }
-    }
-
     private fun parseFitnessData(jsonString: String): FitnessData? {
         return try {
             decodeFromString<FitnessData>(jsonString)
@@ -163,7 +164,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun updateChartData() {
         if (fitnessDataBuffer.isEmpty()) return
         val labelList = fitnessDataBuffer.map { it.axisLabel }
-        _state.value.modelProducer.runTransaction {
+        val timestampStart = fitnessDataBuffer.first().isotimestamp
+        modelProducer.runTransaction {
             lineSeries {
                 series(fitnessDataBuffer.map { it.puls })
                 extras { it[BottomAxisLabelKey] = labelList }

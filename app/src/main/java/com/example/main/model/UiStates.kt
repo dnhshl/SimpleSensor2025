@@ -1,7 +1,5 @@
 package com.example.main.model
 
-import com.patrykandpatrick.vico.core.cartesian.CartesianChart
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import kotlinx.serialization.Serializable
 
 
@@ -18,7 +16,7 @@ data class PersistantUiState(
 // Nicht persistenter UI-Zustand
 data class UiState(
     val fitnessData: FitnessData? = null,
-    val modelProducer: CartesianChartModelProducer = CartesianChartModelProducer(),
+
 )
 
 
